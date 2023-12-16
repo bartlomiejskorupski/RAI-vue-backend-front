@@ -3,6 +3,7 @@ import { ref, computed, inject } from 'vue';
 import CustomInput from './CustomInput.vue';
 import { useRouter } from 'vue-router';
 import type { AxiosError, AxiosResponse, AxiosStatic } from 'axios';
+import type { InputHTMLAttributes } from 'vue';
 
 type AuthMode = 'login' | 'register';
 
@@ -55,33 +56,43 @@ function register() {
     password: credentials.value.password
   };
 
-  axios?.post(
-    '/auth/register', request
-  ).then((res: AxiosResponse<MessageResponse>) => {
-    console.log(res.data.message);
-    message.value = res.data.message;
-    messageIsError.value = false;
-    toggleMode();
-  }).catch((err: AxiosError<MessageResponse>) => {
-    console.log(err.response?.data);
-    message.value = err.response?.data.message;
-    messageIsError.value = true;
-  });
+  axios?.post('/auth/register', request)
+    .then((res: AxiosResponse<MessageResponse>) => {
+      console.log(res.data.message);
+      message.value = res.data.message;
+      messageIsError.value = false;
+      toggleMode();
+    }).catch((err: AxiosError<MessageResponse>) => {
+      console.log(err.response?.data);
+      message.value = err.response?.data.message;
+      messageIsError.value = true;
+    });
 }
 
 function login() {
-  axios?.post('/auth/login', {
+  const request: AuthRequest = {
     login: credentials.value.login,
     password: credentials.value.password
-  }).then((res: AxiosResponse<LoginResponse>) => {
-    console.log(res.data);
-    message.value = '';
-    messageIsError.value = false;
-  }).catch((err: AxiosError<MessageResponse>) => {
-    console.log(err?.response?.data);
-    message.value = err.response?.data.message;
-    messageIsError.value = true;
-  });
+  };
+
+  axios?.post('/auth/login', request)
+    .then((res: AxiosResponse<LoginResponse>) => {
+      console.log(res.data);
+      message.value = '';
+      messageIsError.value = false;
+      localStorage['token'] = res.data.token;
+      router.push('/home');
+    }).catch((err: AxiosError<MessageResponse>) => {
+      console.log(err?.response?.data);
+      message.value = err.response?.data.message;
+      messageIsError.value = true;
+    });
+}
+
+function enterPressedOnPassword(event: KeyboardEvent) {
+  if(event.key === 'Enter' && (event.target as InputHTMLAttributes).name === 'Password'){
+    submitClick();
+  }
 }
 </script>
 
@@ -93,21 +104,24 @@ function login() {
         {{ authHeader }}
       </div>
 
-      <form class="flex flex-column">
+      <form class="flex flex-column" @keydown="enterPressedOnPassword">
         <div :class="['msg', messageIsError ? 'error' : '']"
           v-show="!!message">
           {{ message }}
         </div>
 
-        <CustomInput name="Login"
+        <CustomInput
+          name="Login"
           v-model="credentials.login"
-          placeholder="Enter login...">
+          placeholder="Enter login..."
+          show-label>
         </CustomInput>
 
         <CustomInput name="Password"
           v-model="credentials.password"
           placeholder="Enter password..."
-          :password="true">
+          :password="true"
+          show-label>
         </CustomInput>
 
         <button type="button"

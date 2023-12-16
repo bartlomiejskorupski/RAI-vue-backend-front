@@ -8,7 +8,7 @@ const routes: VueRouter.RouteRecordRaw[] = [
 ];
 
 const router = VueRouter.createRouter({
-  history: VueRouter.createWebHashHistory(),
+  history: VueRouter.createWebHistory(),
   routes
 });
 

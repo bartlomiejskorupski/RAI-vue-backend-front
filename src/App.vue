@@ -6,7 +6,7 @@
   <div class="flex flex-column h-full">
 
     <div class="bg-heading flex">
-      <div class="p-2 text-3xl">ZTM 🤣</div>
+      <div class="p-2 text-3xl select-none">ZTM 🚍</div>
     </div>
 
     <div class="h-full">
