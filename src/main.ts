@@ -7,6 +7,7 @@ import router from './router';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
 import { createPinia } from 'pinia';
+import CapitalizePlugin from './plugins/capitalize-plugin';
 
 const app = Vue.createApp(App);
 
@@ -19,11 +20,6 @@ app.provide('axios', app.config.globalProperties.axios);
 const pinia = createPinia();
 app.use(pinia);
 
-app.config.globalProperties.test = 'TEST WORKS';
-app.config.globalProperties.$filters = {
-  capitalize(value: string) {
-    return value.toUpperCase();
-  }
-}
+app.use(CapitalizePlugin, { firstWordOnly: false });
 
 app.mount('#app');

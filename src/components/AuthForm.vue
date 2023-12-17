@@ -96,7 +96,7 @@ function login() {
 }
 
 function enterPressedOnPassword(event: KeyboardEvent) {
-  if(event.key === 'Enter' && (event.target as InputHTMLAttributes).name === 'Password'){
+  if(event.key === 'Enter' && (event.target as InputHTMLAttributes).name === 'password'){
     submitClick();
   }
 }
@@ -107,7 +107,7 @@ function enterPressedOnPassword(event: KeyboardEvent) {
     <div class="py-2 px-4 border-round-md bg-soft w-18rem">
 
       <div class="text-center text-2xl">
-        {{ authHeader }}
+        {{ $capitalize(mode) }}
       </div>
 
       <form class="flex flex-column" @keydown="enterPressedOnPassword">
@@ -117,13 +117,13 @@ function enterPressedOnPassword(event: KeyboardEvent) {
         </div>
 
         <CustomInput
-          name="Login"
+          name="login"
           v-model="credentials.login"
           placeholder="Enter login..."
           show-label>
         </CustomInput>
 
-        <CustomInput name="Password"
+        <CustomInput name="password"
           v-model="credentials.password"
           placeholder="Enter password..."
           :password="true"

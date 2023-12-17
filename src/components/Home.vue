@@ -118,7 +118,9 @@ function stopChosen(stop: BusStopItem) {
   <div class="h-full flex flex-wrap align-items-start align-content-start">
 
     <div class="m-2 p-3 border-round-md w-24rem bg-mute">
-      <div class="text-xl text-center font-bold">Bus Stops</div>
+      <div class="text-xl text-center font-bold">
+        {{ $capitalize('bus stops') }}
+      </div>
 
       <CustomInput
         name="filter"
@@ -138,7 +140,9 @@ function stopChosen(stop: BusStopItem) {
     </div>
 
     <div class="m-2 p-3 border-round-md w-24rem bg-mute">
-      <div class="text-xl text-center font-bold">Favorites</div>
+      <div class="text-xl text-center font-bold">
+        {{ $capitalize('favorites') }}
+      </div>
 
       <StopList 
         :stops="favorites"
@@ -151,7 +155,9 @@ function stopChosen(stop: BusStopItem) {
     </div>
 
     <div class="m-2 p-3 border-round-md w-24rem bg-mute">
-      <div class="text-xl text-center font-bold">Departures</div>
+      <div class="text-xl text-center font-bold">
+        {{ $capitalize('departures') }}
+      </div>
 
       <DeparturesTable 
         :stop-name="chosenStopName"

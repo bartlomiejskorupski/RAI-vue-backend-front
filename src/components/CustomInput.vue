@@ -26,7 +26,7 @@ defineEmits<{
       v-if="showLabel"
       :for="name" 
       class="text-sm mb-1">
-      {{ name }}
+      {{ $capitalize(name) }}
     </label>
 
     <input
