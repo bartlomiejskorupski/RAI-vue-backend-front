@@ -4,6 +4,7 @@ import CustomInput from './CustomInput.vue';
 import { useRouter } from 'vue-router';
 import type { AxiosError, AxiosResponse, AxiosStatic } from 'axios';
 import type { InputHTMLAttributes } from 'vue';
+import { useUserStore } from '@/data/user.store';
 
 type AuthMode = 'login' | 'register';
 
@@ -13,6 +14,7 @@ type LoginResponse = { token: string };
 
 const router = useRouter();
 const axios = inject<AxiosStatic>('axios');
+const userStore = useUserStore();
 
 const mode = ref<AuthMode>('login');
 
@@ -80,8 +82,12 @@ function login() {
       console.log(res.data);
       message.value = '';
       messageIsError.value = false;
-      localStorage['token'] = res.data.token;
+
+      userStore.login(res.data.token);
+      console.log('TOKEN STATE: ',userStore.$state.token);
+      
       router.push('/home');
+
     }).catch((err: AxiosError<MessageResponse>) => {
       console.log(err?.response?.data);
       message.value = err.response?.data.message;
