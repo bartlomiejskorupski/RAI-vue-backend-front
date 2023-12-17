@@ -5,10 +5,14 @@ import { computed } from 'vue';
 
 const props = defineProps<{
   stops: BusStopItem[];
+  favoriteIds?: number[];
   filter?: string;
   loading?: boolean;
 }>();
 
+defineEmits<{
+  (e: 'favorite', stopId: number): void
+}>();
 
 const filteredStops = computed(() => {
   if(!props.filter) {
@@ -18,6 +22,13 @@ const filteredStops = computed(() => {
     stop.name?.toLocaleLowerCase().includes(props.filter!));
 });
 
+function isFavorite(stopId: number) {
+  if (!props.favoriteIds){
+    return '🖤';
+  }
+  
+  return props.favoriteIds.includes(stopId) ? '💛' : '🖤';
+};
 </script>
 
 <template>
@@ -36,12 +47,14 @@ const filteredStops = computed(() => {
       v-for="stop in filteredStops"
       class="py-1 flex justify-content-between">
 
-      <div class="text-lg">
+      <div class="text-lg pt-1">
         {{ stop.name }}
       </div>
 
-      <div class="">
-        🖤
+      <div 
+        @click="$emit('favorite', stop.stopId!)"
+        class="select-none text-2xl">
+        {{ isFavorite(stop.stopId!) }}
       </div>
 
     </div>
