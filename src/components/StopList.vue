@@ -11,7 +11,8 @@ const props = defineProps<{
 }>();
 
 defineEmits<{
-  (e: 'favorite', stopId: number): void
+  (e: 'favorite', stopId: number): void;
+  (e: 'stopChosen', stop: BusStopItem): void;
 }>();
 
 const filteredStops = computed(() => {
@@ -45,15 +46,16 @@ function isFavorite(stopId: number) {
     <div
       v-else
       v-for="stop in filteredStops"
-      class="py-1 flex justify-content-between">
+      class="py-1 flex justify-content-between cursor-pointer highlight"
+      @click="$emit('stopChosen', stop)">
 
       <div class="text-lg pt-1">
         {{ stop.name }}
       </div>
 
       <div 
-        @click="$emit('favorite', stop.stopId!)"
-        class="select-none text-2xl">
+        @click.stop="$emit('favorite', stop.stopId!)"
+        class="text-2xl">
         {{ isFavorite(stop.stopId!) }}
       </div>
 
@@ -67,4 +69,9 @@ function isFavorite(stopId: number) {
   max-height: 20rem;
   overflow-y: auto;
 }
+
+.highlight:hover {
+  background: var(--color-background-mute);
+}
+
 </style>

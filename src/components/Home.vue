@@ -6,24 +6,35 @@ import { onMounted } from 'vue';
 import type { AxiosError, AxiosResponse, AxiosStatic } from 'axios';
 import type { AllStopsResponse } from '@/model/all-stops-response.model';
 import { busStopToItem, type BusStopItem } from '@/model/bus-stop-item.model';
+import DeparturesTable from './DeparturesTable.vue';
+import type { Departure } from '@/model/departure.model';
+import type { DeparturesResponse } from '@/model/departures-response.model';
 
 const axios = inject<AxiosStatic>('axios');
 
 const filter = ref('');
+
 const allStops = ref<BusStopItem[]>([]);
 const favorites = ref<BusStopItem[]>([]);
-const loadingAll = ref(true);
-const loadingFav = ref(true);
 const favoriteIds = ref<number[]>([]);
 
+const departures = ref<Departure[]>([]);
+const lastDeparturesUpdate = ref<Date>();
+const chosenStopName = ref<string>();
+
+const loadingAll = ref(true);
+const loadingFav = ref(true);
+const loadingDepartures = ref(false);
+
 onMounted(() => {
-  getAllStops();
-  getFavorites();
+  loadingAll.value = true;
+  loadingFav.value = true;
+
+  fetchAllStops();
+  fetchFavorites();
 });
 
-function getAllStops() {
-  loadingAll.value = true;
-
+function fetchAllStops() {
   axios?.get('/busstops', {
       headers: {
         Authorization: 'Bearer ' + localStorage['token']
@@ -31,16 +42,11 @@ function getAllStops() {
     }).then((res: AxiosResponse<AllStopsResponse>) => {
       console.log('Fetched all:', res.data.stops.length);
       allStops.value = res.data.stops.map(busStopToItem);
-    }).catch((err: AxiosError) => {
-      console.log(err);
-    }).finally(() => {
-      loadingAll.value = false;
-    });
+    }).catch((err: AxiosError) => console.log(err))
+      .finally(() => loadingAll.value = false);
 }
 
-function getFavorites() {
-  loadingFav.value = true;
-
+function fetchFavorites() {
   axios?.get('busstops/favorite', {
       headers: {
         Authorization: 'Bearer ' + localStorage['token']
@@ -49,11 +55,8 @@ function getFavorites() {
       console.log('Fetched favorites:', res.data.length);
       favorites.value = res.data;
       favoriteIds.value = res.data.map(stop => stop.stopId!);
-    }).catch((err: AxiosError) => {
-      console.log(err);
-    }).finally(() => {
-      loadingFav.value = false;
-    });
+    }).catch((err: AxiosError) => console.log(err))
+      .finally(() => loadingFav.value = false);
 }
 
 function addFavorite(stopId: number) {
@@ -65,11 +68,8 @@ function addFavorite(stopId: number) {
       }
     }).then(_ => {
       favoriteIds.value.push(stopId);
-      getFavorites();
-    })
-    .catch(err => {
-      console.log(err);
-    });
+      fetchFavorites();
+    }).catch(err => console.log(err));
 }
 
 function deleteFavorite(stopId: number) {
@@ -80,11 +80,23 @@ function deleteFavorite(stopId: number) {
     }).then(_ => {
       const foundId = favoriteIds.value.findIndex(id => id === stopId);
       favoriteIds.value.splice(foundId, 1);
-      getFavorites();
-    })
-    .catch(err => {
-      console.log(err);
-    });
+      fetchFavorites();
+    }).catch(err => console.log(err));
+}
+
+function fetchDepartures(stopId: number) {
+  axios?.get(`/busstops/departures?stopId=${stopId}`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage['token']
+      }
+    }).then((res: AxiosResponse<DeparturesResponse>) => {
+      console.log('Departures fetched', res.data.delay.length);
+      
+      departures.value = res.data.delay;
+      lastDeparturesUpdate.value = new Date(res.data.lastUpdate);
+
+    }).catch((err) => console.log(err))
+      .finally(() => loadingDepartures.value = false);
 }
 
 function favoriteChange(stopId: number) {
@@ -95,13 +107,21 @@ function favoriteChange(stopId: number) {
     addFavorite(stopId);
   }
 }
+
+function stopChosen(stop: BusStopItem) {
+  console.log('Stop chosen:', stop.stopId);
+
+  chosenStopName.value = stop.name;
+  loadingDepartures.value = true;
+  fetchDepartures(stop.stopId!);
+}
 </script>
 
 <template>
-  <div class="h-full flex flex-wrap align-content-start">
+  <div class="h-full flex flex-wrap align-items-start align-content-start">
 
     <div class="m-2 p-3 border-round-md w-24rem bg-mute">
-      <div class="text-3xl text-center">Bus Stops</div>
+      <div class="text-xl text-center font-bold">Bus Stops</div>
 
       <CustomInput
         name="filter"
@@ -114,26 +134,35 @@ function favoriteChange(stopId: number) {
         :stops="allStops"
         :loading="loadingAll"
         :favorite-ids="favoriteIds"
-        @favorite="favoriteChange($event)">
+        @favorite="favoriteChange($event)"
+        @stop-chosen="stopChosen($event)">
       </StopList>
 
     </div>
 
     <div class="m-2 p-3 border-round-md w-24rem bg-mute">
-      <div class="text-3xl text-center">Favorite</div>
+      <div class="text-xl text-center font-bold">Favorites</div>
 
       <StopList 
-        :filter="filter"
         :stops="favorites"
         :loading="loadingFav"
         :favorite-ids="favoriteIds"
-        @favorite="favoriteChange($event)">
+        @favorite="favoriteChange($event)"
+        @stop-chosen="stopChosen($event)">
       </StopList>
 
     </div>
 
     <div class="m-2 p-3 border-round-md w-24rem bg-mute">
-      <div class="text-3xl text-center">Departures</div>
+      <div class="text-xl text-center font-bold">Departures</div>
+
+      <DeparturesTable 
+        :stop-name="chosenStopName"
+        :last-update="lastDeparturesUpdate"
+        :departures="departures"
+        :loading="loadingDepartures">
+      </DeparturesTable>
+
     </div>
 
   </div>
